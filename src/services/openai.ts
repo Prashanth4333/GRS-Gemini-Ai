@@ -3,7 +3,7 @@ import type { Recipient, GiftSuggestion } from '../types';
 import { getMockSuggestions } from './mockData';
 
 const openai = new OpenAI({
-  apiKey: process.env.VITE_OPENAI_API_KEY,
+  apiKey: "",
   dangerouslyAllowBrowser: true
 });
 
