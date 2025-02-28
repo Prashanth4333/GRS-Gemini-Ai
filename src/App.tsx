@@ -1,58 +1,79 @@
-import React, { useState } from 'react';
-import { Gift } from 'lucide-react';
-import QuestionnaireForm from './components/QuestionnaireForm';
-import GiftSuggestions from './components/GiftSuggestions';
-import { generateGiftSuggestions } from './services/openai';
-import type { Recipient, GiftSuggestion } from './types';
+import React, { useState } from "react";
+import QuestionnaireForm from "./components/QuestionnaireForm";
+import GiftSuggestions from "./components/GiftSuggestions";
+import { generateGiftSuggestions } from "./services/gemini";
+import type { Recipient, GiftSuggestion } from "./types";
 
 function App() {
   const [suggestions, setSuggestions] = useState<GiftSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
   const handleSubmit = async (recipient: Recipient) => {
     setIsLoading(true);
     setError(null);
+    setInfoMessage(null);
+    setSuggestions([]);
+
     try {
       const newSuggestions = await generateGiftSuggestions(recipient);
-      setSuggestions(newSuggestions);
+      console.log("🎁 Received Suggestions:", newSuggestions);
+
+      if (!Array.isArray(newSuggestions) || newSuggestions.length === 0) {
+        setInfoMessage(`✅ Successfully generated gifts!`);
+        return;
+      }
+
+      setError("No suggestions available. Try again.");
     } catch (err) {
-      setError('Failed to generate gift suggestions. Please try again.');
-      console.error(err);
+      setError("Failed to generate gift suggestions. Please try again.");
+      console.error("❌ Error:", err);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center mb-12">
-          <div className="flex justify-center mb-4">
-            <Gift className="w-16 h-16 text-indigo-600" />
-          </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Perfect Gift Finder
-          </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Tell us about the person you're shopping for, and we'll use AI to suggest thoughtful, personalized gift ideas that match their interests and your budget.
-          </p>
-        </div>
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-gradient-to-br from-white via-rose-50 to-rose-200">
+      {/* Glassmorphic Card */}
+      <div className="max-w-3xl w-full p-10 bg-white bg-opacity-80 backdrop-blur-lg rounded-3xl border border-pink-200 shadow-xl">
+        {/* Elegant Title */}
+        <h1 className="text-4xl font-bold text-gray-900 text-center tracking-wide">
+          🎁 <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-pink-500">
+            Gift Genius AI
+          </span>
+        </h1>
+        <p className="text-gray-600 text-lg text-center mt-2 font-medium">
+          AI-powered personalized gift recommendations
+        </p>
 
-        <div className="flex flex-col items-center space-y-12">
+        {/* Elegant Divider */}
+        <div className="w-32 h-1 bg-gradient-to-r from-rose-300 to-pink-400 mx-auto mt-3 rounded-full"></div>
+
+        {/* Form Container */}
+        <div className="mt-6 p-6 rounded-xl bg-white bg-opacity-95 border border-rose-200 shadow-md">
           <QuestionnaireForm onSubmit={handleSubmit} isLoading={isLoading} />
-          
-          {error && (
-            <div className="w-full max-w-2xl bg-red-50 border border-red-200 rounded-md p-4 text-red-700">
-              {error}
-            </div>
-          )}
-
-          {suggestions.length > 0 && (
-            <GiftSuggestions suggestions={suggestions} />
-          )}
         </div>
-        <p className='text-center text-gray-800 mt-20 font-medium '>Copyright © 2024 by Prashanth.</p>
+
+        {/* Error Message */}
+        {error && (
+          <p className="text-red-600 text-lg font-semibold text-center mt-4">
+            {error}
+          </p>
+        )}
+
+        {/* Gift Suggestions Section */}
+        <div className="mt-6">
+          <GiftSuggestions suggestions={suggestions} isLoading={isLoading} />
+        </div>
+
+        {/* Success Message */}
+        {infoMessage && (
+          <p className="text-green-700 text-lg font-semibold text-center mt-4">
+            {infoMessage}
+          </p>
+        )}
       </div>
     </div>
   );

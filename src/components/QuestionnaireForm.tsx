@@ -1,191 +1,124 @@
-import React, { useState } from 'react';
-import { Gift, Send } from 'lucide-react';
-import type { Recipient } from '../types';
+import React, { useState } from "react";
+import { Gift, Send } from "lucide-react";
+import type { Recipient, GiftSuggestion } from "../types";
+import { generateGiftSuggestions } from "../services/gemini";
+import GiftSuggestions from "./GiftSuggestions";
 
 interface QuestionnaireFormProps {
-  onSubmit: (data: Recipient) => void;
-  isLoading: boolean;
+  onSubmit: (data: GiftSuggestion[]) => void;
 }
 
-const OCCASIONS = [
-  'Birthday', 'Anniversary', 'Wedding', 'Graduation',
-  'Christmas', 'Housewarming', 'Baby Shower', 'Other'
-];
+const OCCASIONS = ["Birthday", "Anniversary", "Wedding", "Graduation", "Christmas", "Housewarming", "Baby Shower", "Other"];
+const RELATIONSHIPS = ["Family", "Friend", "Colleague", "Partner", "Acquaintance", "Other"];
 
-const RELATIONSHIPS = [
-  'Family', 'Friend', 'Colleague', 'Partner',
-  'Acquaintance', 'Other'
-];
-
-export default function QuestionnaireForm({ onSubmit, isLoading }: QuestionnaireFormProps) {
+export default function QuestionnaireForm({ onSubmit }: QuestionnaireFormProps) {
   const [formData, setFormData] = useState<Recipient>({
-    name: '',
+    name: "",
     age: 0,
-    occasion: '',
+    occasion: "",
     interests: [],
     budget: 0,
-    relationship: ''
+    relationship: "",
   });
 
-  const [currentInterest, setCurrentInterest] = useState('');
+  const [suggestions, setSuggestions] = useState<GiftSuggestion[]>([]);
+  const [currentInterest, setCurrentInterest] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    setIsLoading(true);
+
+    try {
+      console.log("Form Data Sent to AI:", formData);
+      const generatedSuggestions = await generateGiftSuggestions(formData);
+      console.log("Generated Suggestions:", generatedSuggestions);
+      setSuggestions(generatedSuggestions);
+      onSubmit(generatedSuggestions);
+    } catch (error) {
+      console.error("Error:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const addInterest = () => {
     if (currentInterest.trim() && !formData.interests.includes(currentInterest.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        interests: [...prev.interests, currentInterest.trim()]
-      }));
-      setCurrentInterest('');
+      setFormData((prev) => ({ ...prev, interests: [...prev.interests, currentInterest.trim()] }));
+      setCurrentInterest("");
     }
   };
 
   const removeInterest = (interest: string) => {
-    setFormData(prev => ({
-      ...prev,
-      interests: prev.interests.filter(i => i !== interest)
-    }));
+    setFormData((prev) => ({ ...prev, interests: prev.interests.filter((i) => i !== interest) }));
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-2xl">
-      <div className="flex items-center gap-4 mb-8">
-        <Gift className="w-8 h-8 text-indigo-600" />
-        <h2 className="text-2xl font-bold text-gray-900">Gift Recipient Details</h2>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Recipient's Name</label>
-          <input
-            type="text"
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            value={formData.name}
-            onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
-          />
+    <div>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="flex items-center gap-4 mb-6">
+          <Gift className="w-8 h-8 text-gray-700 font-normal" />
+          <h2 className="text-3xl font-semibold text-gray-700 font-normal font-greatvibes">Gift Recipient Details</h2>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Age</label>
-          <input
-            type="number"
-            required
-            min="0"
-            max="150"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            value={formData.age || ''}
-            onChange={e => setFormData(prev => ({ ...prev, age: parseInt(e.target.value) || 0 }))}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Occasion</label>
-          <select
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            value={formData.occasion}
-            onChange={e => setFormData(prev => ({ ...prev, occasion: e.target.value }))}
-          >
-            <option value="">Select an occasion</option>
-            {OCCASIONS.map(occasion => (
-              <option key={occasion} value={occasion}>{occasion}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Budget ($)</label>
-          <input
-            type="number"
-            required
-            min="0"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            value={formData.budget || ''}
-            onChange={e => setFormData(prev => ({ ...prev, budget: parseInt(e.target.value) || 0 }))}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Relationship</label>
-          <select
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            value={formData.relationship}
-            onChange={e => setFormData(prev => ({ ...prev, relationship: e.target.value }))}
-          >
-            <option value="">Select relationship</option>
-            {RELATIONSHIPS.map(relationship => (
-              <option key={relationship} value={relationship}>{relationship}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Interests</label>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              value={currentInterest}
-              onChange={e => setCurrentInterest(e.target.value)}
-              onKeyPress={e => e.key === 'Enter' && (e.preventDefault(), addInterest())}
-              placeholder="Add an interest"
-            />
-            <button
-              type="button"
-              onClick={addInterest}
-              className="mt-1 inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-            >
-              Add
-            </button>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-lg font-medium text-gray-700 font-ptsans">Recipient's Name</label>
+            <input type="text" required className="mt-1 block w-full rounded-md border border-gray-300 focus:ring-gray-700 focus:border-gray-700 p-2 text-lg font-pt-sans" value={formData.name} onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))} />
           </div>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {formData.interests.map(interest => (
-              <span
-                key={interest}
-                className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800"
-              >
-                {interest}
-                <button
-                  type="button"
-                  onClick={() => removeInterest(interest)}
-                  className="ml-2 inline-flex items-center p-0.5 rounded-full text-indigo-400 hover:bg-indigo-200 hover:text-indigo-500 focus:outline-none"
-                >
-                  ×
-                </button>
-              </span>
-            ))}
+
+          <div>
+            <label className="block text-lg font-medium text-gray-700 font-pt-sans">Age</label>
+            <input type="number" required min="0" className="mt-1 block w-full rounded-md border border-gray-300 focus:ring-gray-700 focus:border-gray-700 p-2 text-lg font-pt-sans" value={formData.age || ""} onChange={(e) => setFormData((prev) => ({ ...prev, age: parseInt(e.target.value) || 0 }))} />
+          </div>
+
+          <div>
+            <label className="block text-lg font-medium text-gray-700 font-pt-sans">Occasion</label>
+            <select required className="mt-1 block w-full rounded-md border border-gray-300 focus:ring-gray-700 focus:border-gray-700 p-2 text-lg font-pt-sans" value={formData.occasion} onChange={(e) => setFormData((prev) => ({ ...prev, occasion: e.target.value }))}>
+              <option value="">Select an occasion</option>
+              {OCCASIONS.map((occasion) => (<option key={occasion} value={occasion}>{occasion}</option>))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-lg font-medium text-gray-700 font-pt-sans">Budget ($)</label>
+            <input type="number" required min="0" className="mt-1 block w-full rounded-md border border-gray-300 focus:ring-gray-700 focus:border-gray-700 p-2 text-lg font-pt-sans" value={formData.budget || ""} onChange={(e) => setFormData((prev) => ({ ...prev, budget: parseInt(e.target.value) || 0 }))} />
+          </div>
+
+          <div>
+            <label className="block text-lg font-medium text-gray-700 font-pt-sans">Relationship</label>
+            <select required className="mt-1 block w-full rounded-md border border-gray-300 focus:ring-gray-700 focus:border-gray-700 p-2 text-lg font-pt-sans" value={formData.relationship} onChange={(e) => setFormData((prev) => ({ ...prev, relationship: e.target.value }))}>
+              <option value="">Select relationship</option>
+              {RELATIONSHIPS.map((relationship) => (<option key={relationship} value={relationship}>{relationship}</option>))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-lg font-medium text-gray-700 font-pt-sans">Interests</label>
+            <div className="flex gap-2">
+              <input type="text" className="mt-1 block w-full rounded-md border border-gray-300 focus:ring-gray-700 focus:border-gray-700 p-2 text-lg font-pt-sans" value={currentInterest} onChange={(e) => setCurrentInterest(e.target.value)} onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addInterest())} placeholder="Add an interest" />
+              <button type="button" onClick={addInterest} className="mt-1 bg-gray-800 text-white py-2 px-4 rounded-md font-pt-sans">Add</button>
+            </div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {formData.interests.map((interest) => (
+                <span key={interest} className="inline-flex items-center px-3 py-1 rounded-full bg-gray-200 text-gray-900 font-pt-sans">
+                  {interest}
+                  <button type="button" onClick={() => removeInterest(interest)} className="ml-2 text-gray-600 hover:text-gray-800">×</button>
+                </span>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="mt-6 flex justify-end">
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isLoading ? (
-            <>
-              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Generating Suggestions...
-            </>
-          ) : (
-            <>
-              <Send className="w-5 h-5 mr-2" />
-              Get Gift Suggestions
-            </>
-          )}
-        </button>
-      </div>
-    </form>
+        <div className="mt-6 flex justify-center">
+          <button type="submit" disabled={isLoading} className="px-6 py-3 text-white bg-gray-800 hover:bg-gray-900 transition rounded-md flex items-center gap-2 font-pt-sans text-lg">
+            {isLoading ? "Generating..." : <> <Send className="w-5 h-5" /> Get Suggestions </>}
+          </button>
+        </div>
+      </form>
+
+      {/* Gift Suggestions Component */}
+      <GiftSuggestions suggestions={suggestions} isLoading={isLoading} />
+    </div>
   );
 }
