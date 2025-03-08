@@ -3,8 +3,9 @@ import QuestionnaireForm from "./components/QuestionnaireForm";
 import GiftSuggestions from "./components/GiftSuggestions";
 import { generateGiftSuggestions } from "./services/gemini";
 import type { Recipient, GiftSuggestion } from "./types";
+import Snowfall from "react-snowfall";
 
-function App() {
+const App = () => {
   const [suggestions, setSuggestions] = useState<GiftSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +26,7 @@ function App() {
         return;
       }
 
-      setError("No suggestions available. Try again.");
+      setSuggestions(newSuggestions);
     } catch (err) {
       setError("Failed to generate gift suggestions. Please try again.");
       console.error("❌ Error:", err);
@@ -35,12 +36,19 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-gradient-to-br from-white via-rose-50 to-rose-200">
-      {/* Glassmorphic Card */}
-      <div className="max-w-3xl w-full p-10 bg-white bg-opacity-80 backdrop-blur-lg rounded-3xl border border-pink-200 shadow-xl">
-        {/* Elegant Title */}
+    <div className="relative min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-200 via-indigo-100 to-purple-300 overflow-hidden">
+      {/* Improved Snowfall Effect */}
+      <Snowfall
+        snowflakeCount={150} // Increased snowflakes
+        color="white"
+        speed={[0.5, 2]} // More natural fall speed variation
+        wind={[0, 0.5]} // Slight wind effect
+        radius={[2, 5]} // Varied snowflake sizes
+      />
+
+      <div className="max-w-3xl w-full p-10 bg-white bg-opacity-80 backdrop-blur-lg rounded-3xl border border-purple-200 shadow-xl">
         <h1 className="text-4xl font-bold text-gray-900 text-center tracking-wide">
-          🎁 <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-pink-500">
+          🎁 <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500">
             Gift Genius AI
           </span>
         </h1>
@@ -48,35 +56,29 @@ function App() {
           AI-powered personalized gift recommendations
         </p>
 
-        {/* Elegant Divider */}
-        <div className="w-32 h-1 bg-gradient-to-r from-rose-300 to-pink-400 mx-auto mt-3 rounded-full"></div>
+        <div className="w-32 h-1 bg-gradient-to-r from-blue-300 to-purple-400 mx-auto mt-3 rounded-full"></div>
 
-        {/* Form Container */}
-        <div className="mt-6 p-6 rounded-xl bg-white bg-opacity-95 border border-rose-200 shadow-md">
+        <div className="mt-6 p-6 rounded-xl bg-white bg-opacity-95 border border-blue-200 shadow-md">
           <QuestionnaireForm onSubmit={handleSubmit} isLoading={isLoading} />
         </div>
 
-        {/* Error Message */}
         {error && (
-          <p className="text-red-600 text-lg font-semibold text-center mt-4">
-            {error}
-          </p>
+          <p className="text-red-600 text-lg font-semibold text-center mt-4">{error}</p>
         )}
 
-        {/* Gift Suggestions Section */}
         <div className="mt-6">
           <GiftSuggestions suggestions={suggestions} isLoading={isLoading} />
         </div>
 
-        {/* Success Message */}
         {infoMessage && (
-          <p className="text-green-700 text-lg font-semibold text-center mt-4">
-            {infoMessage}
-          </p>
+          <p className="text-green-700 text-lg font-semibold text-center mt-4">{infoMessage}</p>
         )}
       </div>
+
+      <p className="mt-10 font-semibold text-sm text-gray-600">© 2025 Prashanth. All Rights Reserved</p>
+          
     </div>
   );
-}
+};
 
 export default App;
