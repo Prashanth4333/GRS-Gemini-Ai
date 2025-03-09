@@ -4,6 +4,8 @@ import GiftSuggestions from "./components/GiftSuggestions";
 import { generateGiftSuggestions } from "./services/gemini";
 import type { Recipient, GiftSuggestion } from "./types";
 import Snowfall from "react-snowfall";
+import snowman from "./snowman.png"; // Adjust the path based on its actual location
+
 
 const App = () => {
   const [suggestions, setSuggestions] = useState<GiftSuggestion[]>([]);
@@ -36,17 +38,17 @@ const App = () => {
   };
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-200 via-indigo-100 to-purple-300 overflow-hidden">
+    <div className="relative min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-400 via-indigo-300 to-purple-300 overflow-hidden">
       {/* Improved Snowfall Effect */}
       <Snowfall
-        snowflakeCount={150} // Increased snowflakes
+        snowflakeCount={150}
         color="white"
-        speed={[0.5, 2]} // More natural fall speed variation
-        wind={[0, 0.5]} // Slight wind effect
-        radius={[2, 5]} // Varied snowflake sizes
+        speed={[0.5, 2]}
+        wind={[0, 0.5]}
+        radius={[2, 5]}
       />
 
-      <div className="max-w-3xl w-full p-10 bg-white bg-opacity-80 backdrop-blur-lg rounded-3xl border border-purple-200 shadow-xl">
+      <div className="max-w-3xl w-full p-10 bg-white bg-opacity-80 backdrop-blur-lg rounded-3xl border border-purple-200 shadow-xl relative z-10">
         <h1 className="text-4xl font-bold text-gray-900 text-center tracking-wide">
           🎁 <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500">
             Gift Genius AI
@@ -75,8 +77,23 @@ const App = () => {
         )}
       </div>
 
-      <p className="mt-10 font-semibold text-sm text-gray-600">© 2025 Prashanth. All Rights Reserved</p>
-          
+      {/* Snow-covered Ground with Snowman and Gift Boxes */}
+<div className="absolute bottom-0 w-full h-32 bg-white rounded-t-[50%] flex justify-center items-end z-0">
+  <img
+    src={snowman}
+    alt="Snowman"
+    className="w-72 h-72 absolute bottom-7 left-6 drop-shadow-xl"
+  />
+  <img
+    
+    alt="Gift Boxes"
+    className="w-24 h-24 absolute bottom-4 right-6"
+  />
+</div>
+
+      <p className="mt-10 font-semibold text-sm text-gray-500 relative z-10">
+        © 2025 Prashanth. All Rights Reserved
+      </p>
     </div>
   );
 };
