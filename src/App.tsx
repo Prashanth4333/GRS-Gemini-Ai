@@ -84,11 +84,11 @@ const App = () => {
     alt="Snowman"
     className="w-72 h-72 absolute bottom-7 left-6 drop-shadow-xl"
   />
-  <img
+{ /* <img
     
     alt="Gift Boxes"
     className="w-24 h-24 absolute bottom-4 right-6"
-  />
+  />  */}
 </div>
 
       <p className="mt-10 font-semibold text-sm text-gray-500 relative z-10">
